@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Project Overview: MMDT Tic-Tac-Toe AI Visualizer
 
 In this project, you will implement, test, and deploy an intelligent Game AI system for Tic-Tac-Toe powered by classical Adversarial Search strategies: **Minimax Search with Alpha-Beta Pruning**, **Heuristic Priority Evaluation**, and **Random baseline agents**, coupled with a full-stack interactive Flask web visualizer.
@@ -101,3 +102,6 @@ Every push to the repository triggers the online autograder.
 * **Late Submission Policy:** A penalty of **-10 marks per day** will be applied for late submissions.
 * **Commitment Fee:** Any late, missing, or failed project (score < 70%) will carry a **30,000 MMK commitment fee**, calculated and collected at the end of the 10-week challenge.
 "# Tic-Tac-Toe" 
+=======
+# Tic-Tac-Toe
+>>>>>>> 2926ad5bd2fde703451af840d824557dc176bf47
