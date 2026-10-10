@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adversarial Grid — Tic-Tac-Toe AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a2332;
+      --ink-soft: #3d4a5c;
+      --paper: #f3efe6;
+      --paper-2: #e8e2d4;
+      --line: #c9bfa8;
+      --teal: #0d7377;
+      --teal-deep: #095456;
+      --amber: #c45c26;
+      --amber-soft: #e8a87c;
+      --x-color: #0d7377;
+      --o-color: #c45c26;
+      --win: #1b7a4e;
+      --shadow: 0 18px 50px rgba(26, 35, 50, 0.12);
+      --radius: 14px;
+      --font-display: "Syne", sans-serif;
+      --font-body: "IBM Plex Sans", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(13, 115, 119, 0.14), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 90% 10%, rgba(196, 92, 38, 0.12), transparent 50%),
+        linear-gradient(165deg, #f7f3ea 0%, #ebe4d4 45%, #e0d8c6 100%);
+      background-attachment: fixed;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* —— Hero / brand —— */
+    header.hero {
+      display: grid;
+      gap: 0.65rem;
+      margin-bottom: 1.75rem;
+      animation: rise 0.7s ease both;
+    }
+
+    .brand {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.1rem, 5vw, 3.2rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--ink);
+    }
+
+    .brand span {
+      color: var(--teal);
+    }
+
+    .tagline {
+      font-size: 1.05rem;
+      color: var(--ink-soft);
+      max-width: 36rem;
+    }
+
+    /* —— Layout —— */
+    .stage {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      animation: rise 0.8s 0.08s ease both;
+    }
+
+    @media (min-width: 900px) {
+      .stage {
+        grid-template-columns: minmax(280px, 340px) 1fr;
+        align-items: start;
+      }
+    }
+
+    .panel {
+      background: rgba(243, 239, 230, 0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.15rem 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.02em;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+      margin-bottom: 0.35rem;
+    }
+
+    select, button, input[type="number"] {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      margin-bottom: 0.85rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(13, 115, 119, 0.35);
+    }
+    .btn-primary:hover { background: var(--teal-deep); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+    .btn-ghost:hover { background: var(--paper-2); }
+
+    .btn-amber {
+      background: var(--amber);
+      color: #fff;
+    }
+    .btn-amber:hover { filter: brightness(1.05); }
+
+    .status {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 8px;
+      background: var(--paper-2);
+      border: 1px dashed var(--line);
+      margin-bottom: 1rem;
+      min-height: 2.6rem;
+      display: flex;
+      align-items: center;
+    }
+
+    /* —— Board —— */
+    .board-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: min(100%, 320px);
+      aspect-ratio: 1;
+      padding: 12px;
+      background: var(--ink);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(26, 35, 50, 0.28);
+    }
+
+    .cell {
+      border: none;
+      border-radius: 10px;
+      background: #243044;
+      color: transparent;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2rem, 8vw, 2.75rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.18s ease, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell:hover:not(:disabled) {
+      background: #2e3d56;
+      transform: translateY(-2px);
+    }
+
+    .cell:disabled { cursor: default; }
+
+    .cell.x { color: #5ec8cb; animation: markIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+    .cell.o { color: #f0a574; animation: markIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+    .cell.win {
+      background: #1b4d45;
+      box-shadow: inset 0 0 0 2px #3dd6b0;
+    }
+    .cell.last-ai::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 2px solid rgba(240, 165, 116, 0.55);
+      border-radius: 8px;
+      pointer-events: none;
+      animation: pulseRing 1.2s ease infinite;
+    }
+
+    /* —— Viz —— */
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 600px) {
+      .viz-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .metric {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      margin-bottom: 0.6rem;
+    }
+
+    .metric strong {
+      color: var(--ink);
+      font-size: 1.15rem;
+      display: block;
+      font-family: var(--font-display);
+    }
+
+    .score-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .score-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--ink-soft);
+      transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    }
+
+    .score-cell.has-score {
+      background: rgba(13, 115, 119, 0.12);
+      color: var(--teal-deep);
+      font-weight: 600;
+    }
+
+    .score-cell.best {
+      background: var(--teal);
+      color: #fff;
+      transform: scale(1.04);
+    }
+
+    .score-cell .pos {
+      font-size: 0.65rem;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    /* —— Benchmark —— */
+    .bench-results {
+      margin-top: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.55;
+    }
+
+    .bars {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 42px;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: var(--paper-2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .bar-fill.a1 { background: var(--teal); }
+    .bar-fill.a2 { background: var(--amber); }
+    .bar-fill.dr { background: var(--ink-soft); }
+
+    .hidden { display: none !important; }
+
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes markIn {
+      from { transform: scale(0.4); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulseRing {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.35; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="brand">Adversarial <span>Grid</span></h1>
+      <p class="tagline">Play Tic-Tac-Toe against Minimax, Heuristic, and Random agents — watch candidate scores and prune the game tree live.</p>
+    </header>
+
+    <div class="stage">
+      <!-- Controls -->
+      <aside class="panel">
+        <h2>Game Setup</h2>
+
+        <label for="mode">Mode</label>
+        <select id="mode">
+          <option value="human_ai">Human vs AI</option>
+          <option value="two_player">2-Player Local</option>
+          <option value="ai_ai">AI vs AI</option>
+        </select>
+
+        <div id="humanAiOpts">
+          <label for="difficulty">AI Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy — Random</option>
+            <option value="medium">Medium — Heuristic</option>
+            <option value="unbeatable" selected>Unbeatable — Minimax</option>
+          </select>
+
+          <label for="humanPlays">You play as</label>
+          <select id="humanPlays">
+            <option value="X" selected>X (first)</option>
+            <option value="O">O (second)</option>
+          </select>
+        </div>
+
+        <div id="aiAiOpts" class="hidden">
+          <label for="diffX">Agent X</label>
+          <select id="diffX">
+            <option value="easy">Random</option>
+            <option value="medium">Heuristic</option>
+            <option value="unbeatable" selected>Minimax</option>
+          </select>
+          <label for="diffO">Agent O</label>
+          <select id="diffO">
+            <option value="easy">Random</option>
+            <option value="medium" selected>Heuristic</option>
+            <option value="unbeatable">Minimax</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn-primary" id="btnNew">New Game</button>
+          <button type="button" class="btn-ghost" id="btnAnalyze">Analyze Board</button>
+          <button type="button" class="btn-amber hidden" id="btnStep">Step AI</button>
+        </div>
+      </aside>
+
+      <!-- Board + status -->
+      <section class="panel board-wrap">
+        <div class="status" id="status">Ready — start a new game.</div>
+        <div class="board" id="board" aria-label="Tic-tac-toe board"></div>
+      </section>
+    </div>
+
+    <!-- Visualizer -->
+    <section class="panel" style="margin-top: 1.5rem; animation: rise 0.85s 0.12s ease both;">
+      <h2>Live Decision Visualizer</h2>
+      <div class="viz-grid">
+        <div>
+          <div class="metric">Nodes explored<strong id="nodesVal">—</strong></div>
+          <div class="metric">Agent<strong id="agentName">—</strong></div>
+          <p style="font-size:0.85rem;color:var(--ink-soft);margin-top:0.5rem;">
+            Higher scores are better for the side to move. Best cells highlight in teal.
+          </p>
+        </div>
+        <div>
+          <label style="margin-bottom:0.5rem;">Candidate move scores</label>
+          <div class="score-board" id="scoreBoard"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benchmark -->
+    <section class="panel" style="margin-top: 1.5rem; animation: rise 0.9s 0.16s ease both;">
+      <h2>Bot vs Bot Benchmark</h2>
+      <div class="viz-grid">
+        <div>
+          <label for="simA1">Agent 1</label>
+          <select id="simA1">
+            <option value="minimax" selected>Minimax</option>
+            <option value="heuristic">Heuristic</option>
+            <option value="random">Random</option>
+          </select>
+          <label for="simA2">Agent 2</label>
+          <select id="simA2">
+            <option value="minimax">Minimax</option>
+            <option value="heuristic">Heuristic</option>
+            <option value="random" selected>Random</option>
+          </select>
+          <label for="simN">Games</label>
+          <input type="number" id="simN" min="1" max="200" value="50" />
+          <button type="button" class="btn-primary" id="btnSim">Run Simulation</button>
+        </div>
+        <div>
+          <div class="bench-results" id="benchText">Run a match to see win / draw rates.</div>
+          <div class="bars">
+            <div class="bar-row"><span>Agent 1</span><div class="bar-track"><div class="bar-fill a1" id="barA1"></div></div><span id="pctA1">0%</span></div>
+            <div class="bar-row"><span>Agent 2</span><div class="bar-track"><div class="bar-fill a2" id="barA2"></div></div><span id="pctA2">0%</span></div>
+            <div class="bar-row"><span>Draws</span><div class="bar-track"><div class="bar-fill dr" id="barDr"></div></div><span id="pctDr">0%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>Minimax · Alpha-Beta · Heuristic Priority · Random Baseline</footer>
+  </div>
+
+  <script>
+    const EMPTY = ' ';
+    let state = {
+      board: Array(9).fill(EMPTY),
+      current_player: 'X',
+      mode: 'human_ai',
+      difficulty: 'unbeatable',
+      human_plays: 'X',
+      is_game_over: false,
+      winner: null,
+      winning_line: null,
+      last_ai_move: null,
+    };
+
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const scoreBoardEl = document.getElementById('scoreBoard');
+    const modeEl = document.getElementById('mode');
+    const humanAiOpts = document.getElementById('humanAiOpts');
+    const aiAiOpts = document.getElementById('aiAiOpts');
+    const btnStep = document.getElementById('btnStep');
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cell';
+        btn.dataset.pos = i;
+        btn.addEventListener('click', () => onCellClick(i));
+        boardEl.appendChild(btn);
+      }
+      buildScoreBoard();
+      renderBoard();
+    }
+
+    function buildScoreBoard() {
+      scoreBoardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const d = document.createElement('div');
+        d.className = 'score-cell';
+        d.id = 'sc' + i;
+        d.innerHTML = `<span class="pos">${i}</span><span class="val">—</span>`;
+        scoreBoardEl.appendChild(d);
+      }
+    }
+
+    function renderBoard() {
+      const cells = boardEl.querySelectorAll('.cell');
+      const winSet = new Set(state.winning_line || []);
+      cells.forEach((cell, i) => {
+        const v = state.board[i];
+        cell.textContent = v === EMPTY ? '' : v;
+        cell.classList.toggle('x', v === 'X');
+        cell.classList.toggle('o', v === 'O');
+        cell.classList.toggle('win', winSet.has(i));
+        cell.classList.toggle('last-ai', state.last_ai_move === i);
+        const canClick =
+          !state.is_game_over &&
+          v === EMPTY &&
+          (state.mode === 'two_player' ||
+            (state.mode === 'human_ai' && state.current_player === state.human_plays));
+        cell.disabled = !canClick;
+      });
+      updateStatus();
+    }
+
+    function updateStatus() {
+      if (state.winner) {
+        statusEl.textContent = `${state.winner} wins!`;
+      } else if (state.is_game_over) {
+        statusEl.textContent = 'Draw — board is full.';
+      } else if (state.mode === 'ai_ai') {
+        statusEl.textContent = `AI vs AI — ${state.current_player} to move. Use Step AI.`;
+      } else if (state.mode === 'two_player') {
+        statusEl.textContent = `Local play — ${state.current_player}'s turn.`;
+      } else {
+        const yourTurn = state.current_player === state.human_plays;
+        statusEl.textContent = yourTurn
+          ? `Your turn (${state.human_plays}).`
+          : `AI thinking as ${state.current_player}…`;
+      }
+    }
+
+    function renderStats(stats) {
+      if (!stats) {
+        document.getElementById('nodesVal').textContent = '—';
+        document.getElementById('agentName').textContent = '—';
+        for (let i = 0; i < 9; i++) {
+          const el = document.getElementById('sc' + i);
+          el.className = 'score-cell';
+          el.querySelector('.val').textContent = '—';
+        }
+        return;
+      }
+      document.getElementById('nodesVal').textContent = stats.nodes_explored ?? '—';
+      document.getElementById('agentName').textContent = stats.agent_name ?? '—';
+
+      const matrix = stats.score_matrix || [];
+      let best = -Infinity;
+      matrix.forEach((s) => {
+        if (s !== null && s !== undefined && s > best) best = s;
+      });
+
+      for (let i = 0; i < 9; i++) {
+        const el = document.getElementById('sc' + i);
+        const s = matrix[i];
+        const has = s !== null && s !== undefined;
+        el.className = 'score-cell' + (has ? ' has-score' : '') + (has && s === best ? ' best' : '');
+        el.querySelector('.val').textContent = has ? String(s) : '—';
+      }
+    }
+
+    function applyServerState(data) {
+      state.board = data.board;
+      state.current_player = data.current_player;
+      state.winner = data.winner;
+      state.winning_line = data.winning_line;
+      state.is_game_over = data.is_game_over;
+      state.is_draw = data.is_draw;
+      state.last_ai_move = data.last_ai_move ?? null;
+      if (data.mode) state.mode = data.mode;
+      if (data.difficulty) state.difficulty = data.difficulty;
+      if (data.human_plays) state.human_plays = data.human_plays;
+      renderBoard();
+      renderStats(data.ai_stats);
+    }
+
+    async function newGame() {
+      state.mode = modeEl.value;
+      state.difficulty = document.getElementById('difficulty').value;
+      state.human_plays = document.getElementById('humanPlays').value;
+
+      const res = await fetch('/api/new_game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: state.mode,
+          difficulty: state.difficulty,
+          human_plays: state.human_plays,
+        }),
+      });
+      const data = await res.json();
+      applyServerState(data);
+    }
+
+    async function onCellClick(pos) {
+      if (state.mode === 'ai_ai') return;
+      if (state.is_game_over) return;
+      if (state.board[pos] !== EMPTY) return;
+
+      if (state.mode === 'two_player') {
+        const res = await fetch('/api/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            board: state.board,
+            current_player: state.current_player,
+            position: pos,
+            mode: 'two_player',
+          }),
+        });
+        const data = await res.json();
+        if (data.error) return;
+        applyServerState(data);
+        // Analyze after each local move for visualization
+        await analyze();
+        return;
+      }
+
+      // human vs AI
+      if (state.current_player !== state.human_plays) return;
+
+      const res = await fetch('/api/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: state.board,
+          current_player: state.current_player,
+          position: pos,
+          mode: 'human_ai',
+          difficulty: state.difficulty,
+          human_plays: state.human_plays,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        statusEl.textContent = data.error;
+        return;
+      }
+      applyServerState(data);
+    }
+
+    async function stepAi() {
+      if (state.mode !== 'ai_ai' || state.is_game_over) return;
+      const res = await fetch('/api/ai_move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: state.board,
+          current_player: state.current_player,
+          difficulty_x: document.getElementById('diffX').value,
+          difficulty_o: document.getElementById('diffO').value,
+        }),
+      });
+      const data = await res.json();
+      applyServerState(data);
+    }
+
+    async function analyze() {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: state.board,
+          current_player: state.current_player,
+          use_alpha_beta: true,
+        }),
+      });
+      const data = await res.json();
+      renderStats(data.ai_stats);
+    }
+
+    async function runSim() {
+      const btn = document.getElementById('btnSim');
+      btn.disabled = true;
+      btn.textContent = 'Running…';
+      try {
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agent1: document.getElementById('simA1').value,
+            agent2: document.getElementById('simA2').value,
+            num_games: Number(document.getElementById('simN').value) || 50,
+          }),
+        });
+        const r = await res.json();
+        const n = r.num_games || 1;
+        const p1 = Math.round((100 * r.agent1_wins) / n);
+        const p2 = Math.round((100 * r.agent2_wins) / n);
+        const pd = Math.round((100 * r.draws) / n);
+        document.getElementById('benchText').textContent =
+          `${r.agent1} vs ${r.agent2} — ${n} games: ` +
+          `${r.agent1_wins} wins / ${r.agent2_wins} wins / ${r.draws} draws`;
+        document.getElementById('barA1').style.width = p1 + '%';
+        document.getElementById('barA2').style.width = p2 + '%';
+        document.getElementById('barDr').style.width = pd + '%';
+        document.getElementById('pctA1').textContent = p1 + '%';
+        document.getElementById('pctA2').textContent = p2 + '%';
+        document.getElementById('pctDr').textContent = pd + '%';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Simulation';
+      }
+    }
+
+    function syncModeUI() {
+      const m = modeEl.value;
+      humanAiOpts.classList.toggle('hidden', m !== 'human_ai');
+      aiAiOpts.classList.toggle('hidden', m !== 'ai_ai');
+      btnStep.classList.toggle('hidden', m !== 'ai_ai');
+    }
+
+    modeEl.addEventListener('change', syncModeUI);
+    document.getElementById('btnNew').addEventListener('click', newGame);
+    document.getElementById('btnAnalyze').addEventListener('click', analyze);
+    document.getElementById('btnStep').addEventListener('click', stepAi);
+    document.getElementById('btnSim').addEventListener('click', runSim);
+
+    buildBoard();
+    syncModeUI();
+    newGame();
+  </script>
+</body>
+</html>
