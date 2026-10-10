@@ -41,9 +41,9 @@
 ---
 
 ## Section 4: Deployed and Presentation Information
-- **Deployment Platform:** Render
-- **Live Deployment URL:** PENDING_REPLACE_WITH_LIVE_RENDER_URL
-- **Video Presentation Link:** PENDING_REPLACE_WITH_PUBLIC_VIDEO_LINK
+- **Deployment Platform:** Railway
+- **Live Deployment URL:** https://tic-tac-toe-production-0007.up.railway.app/
+- **Video Presentation Link:** https://drive.google.com/drive/folders/1n0fyFWVjkvQ4FYSbT6CNnNun7CAEiXqq
 
 ---
 
